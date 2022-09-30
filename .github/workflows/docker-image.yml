@@ -16,24 +16,27 @@ jobs:
     - uses: actions/checkout@v3
     - name: -- Build the Docker image
       run: docker build . --file Dockerfile --tag ${{ secrets.IMAGE_TAG }}
-        
-    - name: Push Image to ACR
-      uses: julioarruda/pushimagetoregistry@v1
+
+    - name: -- Log into registry and push
+      uses: docker/build-push-action@v3.1.1
       with:
-        acr-tokenname: ${{ secrets.REGISTRY_USERNAME }}
-        acr-token: ${{ secrets.REGISTRY_PASSWORD }}
-        acr-account: ${{ secrets.REGISTRY_NAME }}
-        acr-imagename: ${{ secrets.IMAGE_TAG }}
-    
+        add-hosts: ${{ secrets.REGISTRY_NAME }}
+        registry: ${{ secrets.REGISTRY_NAME }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+        context: .
+        push: true
+        tags: ${{ secrets.IMAGE_TAG }}
+
     - name: -- Cosign Installer
       uses: sigstore/cosign-installer@v2.7.0
-      
+
     - name: -- Write signing key to disk
       run: 'echo "$KEY" > cosing.key'
       shell: bash
       env:
         KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
-      
+
     - name: -- Sign the public docker image
       env:
         COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
