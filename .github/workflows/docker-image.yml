@@ -17,13 +17,15 @@ jobs:
     - name: -- Build the Docker image
       run: docker build . --file Dockerfile --tag ${{ secrets.IMAGE_TAG }}
 
-    - uses: actions/checkout@v3
-    - name: -- Build the Docker image
-      run: docker login -u=${{ secrets.REGISTRY_USERNAME }} -p=${{ secrets.REGISTRY_PASSWORD }} ${{ secrets.REGISTRY_NAME }}
-      
-    - uses: actions/checkout@v3
-    - name: -- Push image
-      run: docker push ${{ secrets.IMAGE_TAG }}
+    - name: -- Log into registry and push
+      uses: docker/build-push-action@v3.1.1
+      with:
+        registry: ${{ secrets.REGISTRY_NAME }}
+        username: ${{ secrets.REGISTRY_USERNAME }}
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+        context: .
+        push: true
+        tags: ${{ secrets.IMAGE_TAG }}
 
     - name: -- Cosign Installer
       uses: sigstore/cosign-installer@v2.7.0
